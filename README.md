@@ -53,6 +53,8 @@ BuildPlugin is useful when building plugins for distribution. Configuration, as 
 Master (4.17)
 -> 4.18
 -> 4.19
+
+Each branch name indicating what engine version we want to be using
 ```
 
 The engine version is then read from the branch name with UE_ appended in front (Which is the default naming scheme by Epic Games Launcher at the time of writing). What this allowed me to do was change branch and invoke this script without having to change configuration settings each time and, more importantly, have this process automated on Jenkins' end. 
