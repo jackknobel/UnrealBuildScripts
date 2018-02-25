@@ -1,0 +1,65 @@
+<?xml version='1.0' ?>
+<BuildGraph xmlns="http://www.epicgames.com/BuildGraph" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.epicgames.com/BuildGraph ../Schema.xsd" >
+
+	<Option Name="ChangeNumber" DefaultValue="" Description ="The change number we are updating to"/>
+	<Option Name="Stream" DefaultValue="" Description ="The stream this engine build is on"/>
+	
+	<Option Name="Version" DefaultValue="" Description="The version label of the build"/>
+	
+	<Option Name="BuildConfig" Restrict="DebugGame|Development|Shipping" DefaultValue="DebugGame" Description="Build Configuration to Use"/>
+	
+	<Option Name="PlatformConfig" Restrict="Win32|Win64|Linux" DefaultValue="Win64" Description="Platform to Compile/Cook for"/>
+	
+	<!-- The arguments to pass when building -->
+	<Property Name="BuildArguments" Value="-NoUBTMakefiles -NoXGE -UseFastBuild -NoHotReload"/>
+	
+	<!-- <Agent Name="Pre Compile Tasks" Type="PreCompile">
+	
+	</Agent> -->
+
+	<Agent Name="Target Editor" Type="Windows">
+		<Node Name="Compile UHT" Produces="#UHT">		
+			<!-- Compile UnrealHeaderTool -->
+			<Log Message="Compiling Unreal Header Tool for Development"/>
+			<Compile Target="UnrealHeaderTool" Platform="Win64" Arguments="$(BuildArguments)" Configuration="Development" Tag="#UHTFiles"/>	
+		</Node>
+			
+		<!-- Compile the additional components required to produce a standalone build -->
+		<Node Name="Compile Editor for Standalone" Requires="#UHT" Produces="#EditorForStandalone" >
+					
+			<!-- Compile Shader Compile Worker -->
+			<Compile Target="ShaderCompileWorker" Platform="Win64" Arguments="$(BuildArguments)" Configuration="Development" Tag="#ShaderCompilerWorkerFiles"/>
+			
+			<!-- Compile UnrealLightmass -->
+			<Compile Target="UnrealLightmass" Platform="Win64" Arguments="$(BuildArguments)" Configuration="Development" Tag="#UnrealLightmassFiles"/>
+					
+			<!-- Compile CrashReportClient -->
+			<Compile Target="CrashReportClient" Platform="Win64" Arguments="$(BuildArguments)" Configuration="Shipping" Tag="#CrashReportClientFiles"/>
+			
+			<!-- Compile UnrealCEFSubProcess -->
+			<Compile Target="UnrealCEFSubProcess" Platform="Win64" Arguments="$(BuildArguments)" Configuration="Development" Tag="#UnrealCEFSubProcess"/>
+			
+			<!-- Compile Bootstrap tool -->
+			<Compile Target="BootstrapPackagedGame" Platform="Win64" Arguments="$(BuildArguments)" Configuration="Shipping" Tag="#UnrealBootstrapFiles"/>
+							
+			<!-- Compile UnrealPak -->
+			<Compile Target="UnrealPak" Platform="Win64" Arguments="$(BuildArguments)" Configuration="Development" Tag="#UnrealPakFiles"/>
+		</Node>
+		
+		<Node Name="Compile UE4Editor" Requires="#UHT" Produces="#UE4Editor" After="#EditorForStandalone">
+			<!-- Update the build number of our engine -->
+			<SetVersion Change="$(ChangeNumber)" Branch="$(Stream)" Licensee="true" Promoted="false" If="'$(ChangeNumber)' != '' AND '$(Stream)' != ''"/>
+		
+			<!-- Compile Editor in user defined config -->
+			<Log Message="Compiling Editor in $(BuildConfig) for $(PlatformConfig)"/>
+			<Compile Target="UE4Editor" Platform="$(PlatformConfig)" Arguments="$(BuildArguments)" Configuration="$(BuildConfig)" Tag="#EditorFiles"/>
+		</Node>
+	</Agent>
+		
+	<!-- <Agent Name="Post Compilation Tasks" Type="PostCompile">
+		<Node Name="Update Version Number" Requires="Build Editor Win64">
+			<Log Message="Updating Engine Version Number"/>
+			<SetVersion Change="$(ChangeList)" Branch="$(P4Branch)"/>
+		</Node>	
+	</Agent> -->
+</BuildGraph>

@@ -1,0 +1,145 @@
+<?xml version='1.0' ?>
+<BuildGraph xmlns="http://www.epicgames.com/BuildGraph" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.epicgames.com/BuildGraph ../Schema.xsd" >
+
+	<!-- Include script that handles engine builds -->
+	<Include Script="BuildEngine.xml"/>
+
+	<Option Name="ProjectName" DefaultValue="" Description="The name of the project"/>
+	<Option Name="ProjectDir" DefaultValue="" Description="The project directory"/>
+	
+	<Property Name="Project" Value="$(ProjectDir)/$(ProjectName).uproject"/>
+
+	<Option Name="VersionFile" DefaultValue="$(ProjectDir)/Source/$(ProjectName)/$(ProjectName).h" Description="The project version file to update"/>
+	
+	<!-- Set our Cooked Platform Value -->
+	<Property Name="CookedPlatform" Value=""/>
+	<Switch>
+		<Case If="'$(PlatformConfig)' == 'Switch'">
+			<Property Name="CookedPlatform" Value="Switch"/>
+		</Case>
+		<Default>
+			<Property Name="CookedPlatform" Value="WindowsNoEditor"/>
+		</Default>
+	</Switch>
+	
+	<!-- The argument to pass when building a project related program -->
+	<Property Name="ProjectArgument" Value="-Project=&quot;$(Project)&quot;"/>	
+	
+	<!-- Arguments to pass to the cooker -->
+	<Property Name="CookerArguments" Value="-compressed -encryptinifiles -SkipCookingEditorContent"/>
+	
+	<!-- Levels to include and cook for this build -->
+	<Option Name="Levels" DefaultValue="" Description="The levels to include in the build. Must be seperated by + symbol"/>
+	
+	<!-- The argument we pass for levels when cooking -->
+	<Property Name="LevelArgument" Value=""/>
+	<Do If="'$(Levels)' != ''">
+		<Property Name="LevelArgument" Value="-map$(Levels)"/>
+	</Do>
+	
+	<!-- The backup Directory for our builds -->
+	<Option Name="BackupDir" DefaultValue="" Description="The directory we want to backup to"/>
+	
+	<!-- The directory to store the output of the build (Where we store the latest build) -->
+	<Option Name="OutputDir" DefaultValue="" Description="The directory to store the output of a successful build"/>
+	
+	<!--
+	=======================================================
+						Editor Building
+	=======================================================
+	-->	
+	<Agent Name="Cooking" Type="Cook">
+		<Node Name="Cook Project" Requires="#EditorForStandalone" Produces="#CookedProject">			
+			<Cook Project="$(Project)" Platform="$(CookedPlatform)" Arguments="$(CookerArguments)" Tag="#GameCookedFiles"/>	
+		</Node>
+	</Agent>
+	
+	<!--
+	=======================================================
+					Standalone Builds
+	=======================================================
+	-->
+	
+	<!-- The deployment platform (Steam, Internal etc) -->
+	<Property Name="DeployPlatform" Value="Internal"/>
+			
+	<!-- The deployment platform (Steam, Internal etc) output directory -->
+	<Property Name="DeploymentDirectory" Value=""/>
+	
+	<!-- The directory we want unreal to output too during BuildCookRun -->
+	<Property Name="WorkingDir" Value="$(ProjectDir)/Builds/"/>
+	
+	<Do If="'$(DeploymentDirectory)' == ''">
+		<Property Name="DeploymentDirectory" Value="$(WorkingDir)"/>			
+	</Do>
+	
+	<!-- The directories we want to backup -->
+	<Property Name="BackUpDirs" Value=""/>
+	
+	<Agent Name="Target Windows" Type="Windows">
+	
+		<Property Name="PlatformConfig" Value="Win64"/>
+		
+		<!-- Compile the basic components required to compile a project -->
+		<Node Name="Compile $(ProjectName)Editor $(PlatformConfig)" Requires="#UHT" Produces="#ProjectEditor$(PlatformConfig)">
+			
+			<!-- Locally Update Project Version -->
+			<SetProjectVersion ProjectVersionFile="$(VersionFile)" Version="$(Version)" If="'$(Version)' != ''" AppendEngineNumber="false"/>
+			
+			<!-- Compile Editor for Project -->
+			<Compile Target="$(ProjectName)Editor" Platform="$(PlatformConfig)" Arguments="$(ProjectArgument) $(BuildArguments)" Configuration="Development" Tag="#ProjectEditorFiles_$(PlatformConfig)"/>
+					
+		</Node>
+	
+		<!-- Compile game for Windows 64 -->
+		<Node Name="Compile $(ProjectName) $(PlatformConfig)" Requires="#ProjectEditor$(PlatformConfig)" Produces="#CompiledGame$(PlatformConfig)">
+			<Compile Target="$(ProjectName)" Platform="$(PlatformConfig)" Arguments="$(ProjectArgument) $(BuildArguments)" Configuration="$(BuildConfig)" Tag="#CompiledGame$(PlatformConfig)Files"/>		
+		</Node>
+		
+		<!-- Build game for Windows 64 -->
+		<Node Name="Build Game Win64" Requires="#CompiledGame$(PlatformConfig);#EditorForStandalone" Produces="#GameWin64">
+ 								
+			<Command Name="BuildCookRun" Arguments="$(ProjectArgument) $(CookerArguments) -noP4 -platform=$(PlatformConfig) -clientconfig=$(BuildConfig) -cook $(Levels) -stage -package -pak -archive -archivedirectory=&quot;$(DeploymentDirectory)&quot;"/>
+
+		</Node>
+	</Agent>
+	
+	<Agent Name="Target Linux" Type="Linux">
+		
+		<Property Name="PlatformConfig" Value="Linux"/>
+		
+		<!-- Compile the basic components required to compile a project -->
+		<Node Name="Compile $(ProjectName)Editor $(PlatformConfig)" Requires="#UHT" Produces="#ProjectEditor$(PlatformConfig)">
+			
+			<!-- Locally Update Project Version -->
+			<SetProjectVersion ProjectVersionFile="$(VersionFile)" Version="$(Version)" If="'$(Version)' != ''" AppendEngineNumber="false"/>
+			
+			<!-- Compile Editor for Project -->
+			<Compile Target="$(ProjectName)Editor" Platform="$(PlatformConfig)" Arguments="$(ProjectArgument) $(BuildArguments)" Configuration="Development" Tag="#ProjectEditorFiles_$(PlatformConfig)"/>
+					
+		</Node>
+		
+		<!-- Compile game for Linux -->
+		<Node Name="Compile $(ProjectName) $(PlatformConfig)" Requires="#ProjectEditor$(PlatformConfig)" Produces="#CompiledGame$(PlatformConfig)">
+			<Compile Target="$(ProjectName)" Platform="$(PlatformConfig)" Arguments="$(ProjectArgument) $(BuildArguments)" Configuration="$(BuildConfig)" Tag="#CompiledGame$(PlatformConfig)Files"/>		
+		</Node>
+		
+		<!-- Compile game for Linux Server -->
+		<Node Name="Compile Game Server" Requires="#ProjectEditor$(PlatformConfig)" Produces="#CompiledGameServer">
+			<Compile Target="$(ProjectName)Server" Platform="$(PlatformConfig)" Arguments="$(ProjectArgument) $(BuildArguments)" Configuration="$(BuildConfig)" Tag="#GameServerCompiledFiles"/>
+		</Node>
+
+		<!-- Build Linux Server -->
+		<Node Name="Build Dedicated Server" Requires="#CompiledGameServer;#EditorForStandalone" Produces="#DedicatedServer">			
+			<Command Name="BuildCookRun" Arguments="$(ProjectArgument) $(CookerArguments) -noP4 -server -serverconfig=$(BuildConfig) -serverplatform=$(PlatformConfig) -noclient -build -cook $(Levels) -package -pak  -stage -archive -archivedirectory=&quot;$(DeploymentDirectory)&quot;"/>
+		</Node>
+	</Agent>
+	
+	<!--
+	=======================================================
+					Aggregate Commands
+	=======================================================	
+	-->
+	<Aggregate Name="Test Project" Requires="#ProjectEditorWin64;#CookedProject"/>
+
+</BuildGraph>
