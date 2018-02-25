@@ -1,5 +1,5 @@
-# UnrealBuildScripts
-Scripts I have found useful when developing in UE4
+# Unreal Build Scripts
+Scripts I've found useful when developing in UE4
 
 
 
@@ -58,3 +58,9 @@ Each branch name indicating what engine version we want to be using
 ```
 
 The engine version is then read from the branch name with UE_ appended in front (Which is the default naming scheme by Epic Games Launcher at the time of writing). What this allowed me to do was change branch and invoke this script without having to change configuration settings each time and, more importantly, have this process automated on Jenkins' end. 
+
+
+
+#### Clean Project
+
+Simple script that uses the project configuration to delete generated project files, binaries and an option to remove visual studio files. This is more useful when using the source version of UE because, as I'm sure you know, if you run clean in visual studio you can expect a full engine rebuild...
