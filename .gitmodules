@@ -1,0 +1,6 @@
+[submodule "Perforce"]
+	path = Perforce
+	url = https://github.com/jackknobel/P4Scripts
+[submodule "FastBuild"]
+	path = FastBuild
+	url = https://github.com/jackknobel/Unreal_FASTBuild
