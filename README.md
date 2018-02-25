@@ -5,7 +5,7 @@ Scripts I have found useful when developing in UE4
 
 ## Build Graph
 
-[BuildGraph](https://docs.unrealengine.com/latest/INT/Programming/Development/BuildGraph/) scripts used for testing and building a UE4 project. If you are a familiar with BuildGraph then these should be pretty straightforward to use, if you are not, I would recommend taking a geeze at the documentation and of running the check project powershell script.
+[BuildGraph](https://docs.unrealengine.com/latest/INT/Programming/Development/BuildGraph/) scripts used for testing and building a UE4 project. If you are a familiar with BuildGraph then these should be pretty straightforward to use, if you are not, I would recommend taking a geeze (look) through the documentation and running the *CheckProject* powershell script to see it in action.
 
 The scripts don't contain all of the logic we use in house but should be a good reference point for developers wanting to learn how to use the build graph system.
 
