@@ -131,7 +131,7 @@ Function Run-BuildGraphScript
 {
 	param([string]$Script)
 	
-	$Argument = "cmd.exe /c $UAT BuildGraph {0}" -f $Script
+	$Argument = "$UAT BuildGraph $Script"
 	Run-Command($Argument)
 }
 
