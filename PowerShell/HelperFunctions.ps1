@@ -105,39 +105,15 @@ Function Get-IniContent
         {Write-Verbose "$($MyInvocation.MyCommand.Name):: Function ended"}  
 }
 
-Function Run-Command
+#================================================================================================================================================
+
+enum UnrealProcessType
 {
-	param([string]$SpecifiedCommand)
-	
-	if($Debug -eq "true")
-	{
-		 Write-Warning "Running Command $SpecifiedCommand"
-	}
-	
-	try
-	{
-		cmd.exe /c $SpecifiedCommand
-		pause
-	}
-	catch
-	{
-		Write-Error "Failed to run command $SpecifiedCommand"
-		Read-Host -Prompt "Press Enter to exit"
-	}
+    UAT
+    UBT
+    CMD
 }
 
-
-Function Run-BuildGraphScript
-{
-	param([string]$Script)
-	
-	$Argument = "$UAT BuildGraph $Script"
-	Run-Command($Argument)
-}
-
-#====================================
-# Global Variables
-#====================================
 $FileContent = Get-IniContent ".\ScriptConfig.ini"
 if($FileContent)
 {
@@ -156,25 +132,20 @@ if($FileContent)
 		{
 			 Write-Warning "Successfully Loaded Engine Settings"
 		}
-		
-		$EngineDirectory 	= $EngineSettings["EngineLocation"]
-		$BuilGraphRoot 		= $EngineSettings["BuildGraphScriptsLocation"]
-		
-		# UE4 Build Tool Path Setup
-		$UAT =
-@"
-		"$EngineDirectory/Engine/Build/BatchFiles/RunUAT.bat"
-"@
-		
-		$UBT =
-@"
-		"$EngineDirectory/Engine/Binaries/DotNET/UnrealBuildTool.exe"
-"@
-		
-		# BuildGraph Scripts
-		$BuildProjectScript = "$BuilGraphRoot/BuildProject.xml"
-		$BuildEngine = "$BuilGraphRoot/BuildEngine.xml"
+
+        $EngineDirectory = $EngineSettings["EngineLocation"]
+
+        # If the path isn't relative
+		if(-Not [System.IO.Path]::IsPathRooted($EngineDirectory))
+		{
+			 $EngineDirectory = Join-Path $WorkspaceRoot $EngineDirectory -Resolve
+		}
 	}
+
+    $UATDir = "Engine/Build/BatchFiles/RunUAT.bat"
+    $UBTDir = "Engine/Binaries/DotNET/UnrealBuildTool.exe"
+    $UE4EditorCMDDir = "Engine/Binaries/Win64/UE4Editor-Cmd.exe"
+    $BuildGraphDir = "Engine/Build/Graph/"
 	
 	$ProjectSettings = $FileContent["ProjectSettings"]
 	if($ProjectSettings)
@@ -194,4 +165,100 @@ if($FileContent)
 else
 {
 	Write-Error "Failed to Load ini config file"
+}
+
+
+Function Run-UE4Command
+{
+     <#  
+      .Synopsis  
+        Runs a UE4 Command
+
+      .Parameter UnrealProcessType  
+        The process type we want to launch, UAT, UBT or UE4CMD
+
+      .Parameter SpecifiedCommand
+        The command we want to run under the given UE4 process
+
+      .Parameter CloseAfterExecution
+        Do we want to close the script after running         
+    #>
+     
+    Param
+    (
+        [parameter(Mandatory)]
+        [UnrealProcessType]
+        $ProcessToUse,
+
+        [parameter(Mandatory)]
+        [String]
+        $SpecifiedCommand,
+    
+        [bool]
+        $CloseAfterExecution
+    )
+
+    # UE4 Build Tool Path Setup, we resolve these here so it gives a chance for the user to modify the engine directory prior to running a command
+    switch($ProcessToUse)
+    {
+        UAT
+        {
+            $UnrealProcess =  $UATDir
+            continue
+        }
+        UBT
+        {
+            $UnrealProcess = $UBTDir
+            continue
+        }
+        CMD
+        {
+            $UnrealProcess = $UE4EditorCMDDir
+            continue
+        }
+    }
+    $UnrealProcessPath = Join-Path $EngineDirectory $UnrealProcess -Resolve
+    $Command = """$UnrealProcessPath"" $SpecifiedCommand"
+	
+	if($Debug -eq "true")
+	{
+		 Write-Warning "Running Command $Command"
+	}
+	
+    try
+    {
+        cmd.exe /c $Command
+        if(-Not $CloseAfterExecution)
+        {
+            pause
+        }
+    }
+    catch
+    {
+    	Write-Error "Failed to run command $SpecifiedCommand"
+    	Read-Host -Prompt "Press Enter to exit"
+    }
+}
+
+
+Function Run-BuildGraphScript
+{
+     <#  
+      .Synopsis  
+        Runs a BuildGraph Script
+
+      .Parameter Script  
+        The BuildGraph Script we want to run
+     #>
+
+  Param
+    (
+        [parameter(Mandatory)]
+        [String]
+        $Script
+    )
+	
+	$Argument = "BuildGraph $Script"
+
+	Run-Command ([UnrealProcessType]::UAT) $Argument
 }

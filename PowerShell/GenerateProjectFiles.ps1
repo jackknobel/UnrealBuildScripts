@@ -1,7 +1,5 @@
 . .\HelperFunctions.ps1
 
-$Command = @"
-$UBT -projectfiles -project="$ProjectFile" -game -engine -progress
-"@
+$Command = "-projectfiles -project=""$ProjectFile"" -game -engine -progress"
 
-Run-Command($Command)
+ Run-UE4Command ([UnrealProcessType]::UBT) $Command
