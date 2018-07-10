@@ -3,7 +3,6 @@
 . .\HelperFunctions.ps1
 
 $EngineVersion = $FileContent["EngineSettings"]["TargetEngineVersion"]
-$EngineDirectory = "$EngineDirectory/UE_$EngineVersion/"
 
 $PluginFile 	= $FileContent["PluginSettings"]["PluginUFile"]
 $PluginOutDir 	= $FileContent["PluginSettings"]["OutputDir"]

@@ -135,6 +135,13 @@ if($FileContent)
 
         $EngineDirectory = $EngineSettings["EngineLocation"]
 
+        $EngineVersion = $EngineSettings["TargetEngineVersion"]
+
+        if(-Not([string]::IsNullOrEmpty($EngineVersion)))
+        {
+            $EngineDirectory = Join-Path $EngineDirectory UE_$EngineVersion -Resolve
+        }
+
         # If the path isn't relative
 		if(-Not [System.IO.Path]::IsPathRooted($EngineDirectory))
 		{
