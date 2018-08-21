@@ -13,7 +13,7 @@ The scripts don't contain all of the logic we use in house but should be a good 
 
 ## Jenkins
 
-Jenkinsfile used in the production of Kieru. This script in particular was invoked every time a developer pushed to perforce. I have omitted some of the content in the script for NDA reasons but all code should still be relevant.
+Jenkinsfile used in the production of Kieru in combination with the above BuildGraph scripts. This script in particular was invoked every time a developer pushed to perforce. I have omitted some of the content in the script for NDA reasons but all code should still be relevant.
 
 
 

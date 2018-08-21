@@ -4,3 +4,6 @@
 [submodule "FastBuild"]
 	path = FastBuild
 	url = https://github.com/jackknobel/Unreal_FASTBuild
+[submodule "JenkinsLibrary"]
+	path = JenkinsLibrary
+	url = https://github.com/jackknobel/JenkinsLibrary
