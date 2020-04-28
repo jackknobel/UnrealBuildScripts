@@ -1,0 +1,27 @@
+<?xml version='1.0' ?>
+<BuildGraph xmlns="http://www.epicgames.com/BuildGraph" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.epicgames.com/BuildGraph ../Schema.xsd" >
+
+	<!--
+	=======================================================
+					Platform Support
+	=======================================================
+	-->
+	<Property Name="SupportedWindowsPlatforms" 	Value="Win64;XboxOne"/>
+	<Property Name="SupportedMacPlatforms" 		Value="IOS;TVOS;Mac"/>
+
+	<!--
+	=======================================================
+					Project Specific Globals
+	=======================================================
+	-->
+
+	<Option Name="ProjectDir" 	DefaultValue="" Description="The project directory"/>
+	<Option Name="ProjectName" 	DefaultValue="" Description="The name of the project"/>
+
+	<!-- Arguments to pass to the cooker -->
+	<Property Name="DefaultCookerArguments" Value="-SkipCookingEditorContent -pak -compressed"/>
+
+	<!-- Levels to include and cook for this build -->
+	<Option Name="OverrideLevels" DefaultValue="" Description="If we want to ignore the map list, the levels to include in the build. Must be seperated by + symbol"/>
+	
+</BuildGraph>
