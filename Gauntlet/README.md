@@ -16,3 +16,8 @@ Before running these scripts it's important you have created an Automation Proje
 	-configuration: Configuration to install/launch. Defaults to development
 	-path: Path to a folder with a build, or a folder that contains platform folders with builds in (e.g. /Saved/StagedBuilds)
 	-cmdline: Additional command line arguments to pass to build for when it next launches
+
+
+#### Devices.json File
+
+Example devices.json file that can be used with gauntlet to declare a bunch of devices rather then having to manually pass them over the commandline.
