@@ -18,7 +18,6 @@ Additionally you can use the ProjectVariables.xml to set some defaults instead o
 Gauntlet commands or scripts that can be useful during development
 
 
-
 ## Jenkins
 
 Jenkins library used to make invoking UE4 compilation and packaging easier e.g. 
@@ -26,7 +25,9 @@ Jenkins library used to make invoking UE4 compilation and packaging easier e.g.
 
 See readme in sub folder for more info.
 
+## Misc
 
+Misc scripts I've written to help various workflows
 
 ## Perforce
 
