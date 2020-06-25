@@ -1,0 +1,33 @@
+[
+	{
+		"_comment": "** This file is read by build machines, please VALIDATE changes before saving! ** ",
+		"Name": "My-PC",
+		"Type": "Win64",
+		"Address": "10.1.1.112"
+	},
+	{
+		"Name": "TV 4K",
+		"Type": "TVOS",
+		"Address": "<DeviceID>",
+		"Available": "Disabled"
+	},
+	{
+		"Name": "My iPad",
+		"Type": "IOS",
+		"Address": "<DeviceID>"
+	},
+	{
+		"_comment": "An Example Device, doesn't actually exist ",
+		"Name": "ExampleDevKit",
+		"Type": "PS4",
+		"Address": "10.1.201.229",
+		"Available": "20:00-08:00"
+	},
+	{
+		"_comment": "An Example Device, doesn't actually exist ",
+		"Name": "ExampleDevKit2",
+		"Type": "PS4",
+		"Address": "10.1.201.220",
+		"Available": "Disabled"
+	}
+]
