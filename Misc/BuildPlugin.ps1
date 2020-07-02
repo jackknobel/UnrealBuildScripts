@@ -89,7 +89,7 @@ Foreach($Install in $EngineInstalls)
 
     if($Successful)
     {
-        Write-Host(“Succesfull packaged {0} for {1}” -f $PluginName, $EngineVersion) -ForegroundColor Green
+        Write-Host(“Succesfully packaged {0} for {1}” -f $PluginName, $EngineVersion) -ForegroundColor Green
     }
     else
     {
