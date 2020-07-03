@@ -66,6 +66,12 @@ Foreach($Install in $EngineInstalls)
         if($process.ExitCode -eq 0)
         {
             $Successful = $True
+			
+			# Remove Intermediate dir as it's not required
+			if(Test-Path "$PackageOutputPath/Intermediate")
+			{
+				Remove-Item "$PackageOutputPath/Intermediate" -Recurse
+			}
 
             If($Zip)
             {
@@ -77,10 +83,17 @@ Foreach($Install in $EngineInstalls)
                     $ZipName = "${VersionString}-${ZipName}"
                 }
 
-                Write-Output ("Zipping to: $OutputDir/$ZipName.zip")
+				$ZipOutput = "${OutputDir}/${ZipName}.zip"
+				
+                Write-Output ("Zipping to: $ZipOutput")
+				
+                # Remove any duplicates of the .zip we're about to create
+				if(Test-Path -LiteralPath $ZipOutput -PathType leaf)
+				{
+					Remove-Item -LiteralPath "$ZipOutput"
+				}
 
-                [void][Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem')
-                [IO.Compression.ZipFile]::CreateFromDirectory("$PackageOutputPath", "$OutputDir/$ZipName.zip", 'Optimal', $true)
+				Compress-Archive "$PackageOutputPath" "$ZipOutput" -CompressionLevel Optimal
             }
         }
     }
