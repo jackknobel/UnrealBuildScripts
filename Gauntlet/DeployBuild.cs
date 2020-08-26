@@ -1,6 +1,7 @@
 using AutomationTool;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnrealBuildTool;
 
@@ -11,7 +12,7 @@ namespace Gauntlet.Examples
 	[Help("devices=<Device1,Device2> or devices=<Devices.json>", "Devices to install on. If empty uses the default device for this machine")]
 	[Help("platform=<Plat>", "Platform for these builds and devices")]
 	[Help("configuration=<Config>", "Configuration to install/launch. Defaults to development")]
-	[Help("path=<Path>", "Path to a folder with a build, or a folder that contains platform folders with builds in (e.g. /Saved/StagedBuilds)")]
+	[Help("build=<path>", "Path to a folder with a build, or a folder that contains platform folders with builds in (e.g. /Saved/StagedBuilds)")]
 	[Help("cmdline=<AdditionalArguments>", "Additional command line arguments to pass to build for when it next launches")]
 	public class DeployBuild : BuildCommand
 	{
@@ -28,7 +29,7 @@ namespace Gauntlet.Examples
 		public string Configuration;
 
 		[AutoParam("")]
-		public string Path;
+		public string Build;
 
 		[AutoParamWithNames("", "cmdline", "commandline")]
 		public string Commandline = "";
@@ -40,8 +41,8 @@ namespace Gauntlet.Examples
 			AutoParam.ApplyParamsAndDefaults(this, Environment.GetCommandLineArgs());
 
 			// Fix up any pathing issues (some implementations don't like backslashes i.e. xbox)
-			Project = Project.Replace(@"\", "/");
-			Path	= Path.Replace(@"\", "/");
+			Project = Path.GetFileNameWithoutExtension(Project.Replace(@"\", "/"));
+			Build	= Build.Replace(@"\", "/");
 
 			UnrealTargetPlatform ParsedPlatform				= UnrealTargetPlatform.Parse(Platform);
 			UnrealTargetConfiguration ParseConfiguration	= (UnrealTargetConfiguration)Enum.Parse(typeof(UnrealTargetConfiguration), Configuration, true);
@@ -49,18 +50,18 @@ namespace Gauntlet.Examples
 			DevicePool.Instance.AddDevices(ParsedPlatform, Devices, false);
 			
 			// Find sources for this platform (note some platforms have multiple sources for staged builds, packaged builds etc)
-			IEnumerable<IFolderBuildSource> BuildSources = Gauntlet.Utils.InterfaceHelpers.FindImplementations<IFolderBuildSource>().Where(S => S.CanSupportPlatform(ParsedPlatform));
+			IEnumerable<IFolderBuildSource> BuildSources = Gauntlet.Utils.InterfaceHelpers.FindImplementations<IFolderBuildSource>().Where(BuildSource => BuildSource.CanSupportPlatform(ParsedPlatform));
 
-			// Find all builds at the specified path
-			IBuild Build = BuildSources.SelectMany(S => S.GetBuildsAtPath(Project, Path)).FirstOrDefault();
-			
-			if (Build == null)
+			// Find all builds at the specified path that match the config
+			IBuild FoundBuild = BuildSources.SelectMany(BuildSource => BuildSource.GetBuildsAtPath(Project, Build)).First(Build => Build.Configuration == ParseConfiguration);
+
+			if (FoundBuild == null)
 			{
-				throw new AutomationException("No builds for platform {0} found at {1}", Platform, Path);
+				throw new AutomationException("No builds for platform {0} found at {1}", Platform, Build);
 			}
 
 			UnrealAppConfig Config	= new UnrealAppConfig();
-			Config.Build			= Build;
+			Config.Build			= FoundBuild;
 			Config.ProjectName		= Project;
 			Config.Configuration	= ParseConfiguration;
 			Config.CommandLine		= Commandline;
@@ -70,13 +71,14 @@ namespace Gauntlet.Examples
 			/* This seems redundant but it's the only way to grab the devices at this stage 
 			 * Todo: This will only pass in devices that are powered on, find a way to grab off devices and power them on
 			 */
-			DevicePool.Instance.EnumerateDevices(new UnrealTargetConstraint(ParsedPlatform), Device =>
+			Log.Info("Enumerating Devices!");
+			DevicePool.Instance.EnumerateDevices(ParsedPlatform, Device =>
 			{
 				if(!AcquiredDevices.Contains(Device))
 				{
 					AcquiredDevices.Add(Device);
 				}
-				return false;
+				return true;
 			});
 
 			if(AcquiredDevices.Count == 0)
@@ -85,7 +87,7 @@ namespace Gauntlet.Examples
 				return ExitCode.Error_AppInstallFailed;
 			}
 
-			Log.Info("Beginning Installation!");
+			Log.Info("Beginning Installation to {0} devices!", AcquiredDevices.Count);
 
 			// Reserve our devices so nothing else can use them
 			DevicePool.Instance.ReserveDevices(AcquiredDevices);

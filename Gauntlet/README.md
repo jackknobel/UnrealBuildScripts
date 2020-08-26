@@ -14,7 +14,7 @@ Before running these scripts it's important you have created an Automation Proje
 	-devices: Devices to install on; <Device1,Device2> or devices=<Devices.json>
 	-platform: Platform for these builds and devices
 	-configuration: Configuration to install/launch. Defaults to development
-	-path: Path to a folder with a build, or a folder that contains platform folders with builds in (e.g. /Saved/StagedBuilds)
+	-build: Path to a folder with a build, or a folder that contains platform folders with builds in (e.g. /Saved/StagedBuilds)
 	-cmdline: Additional command line arguments to pass to build for when it next launches
 
 
