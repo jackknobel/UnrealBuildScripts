@@ -52,12 +52,22 @@ namespace Gauntlet.Examples
 			// Find sources for this platform (note some platforms have multiple sources for staged builds, packaged builds etc)
 			IEnumerable<IFolderBuildSource> BuildSources = Gauntlet.Utils.InterfaceHelpers.FindImplementations<IFolderBuildSource>().Where(BuildSource => BuildSource.CanSupportPlatform(ParsedPlatform));
 
-			// Find all builds at the specified path that match the config
-			IBuild FoundBuild = BuildSources.SelectMany(BuildSource => BuildSource.GetBuildsAtPath(Project, Build)).First(Build => Build.Configuration == ParseConfiguration);
+			// Find first build at the specified path that match the config
+			IBuild FoundBuild = null;
+			foreach (IBuild Build in BuildSources.SelectMany(BuildSource => BuildSource.GetBuildsAtPath(Project, Build)))
+			{
+				Log.Info("Found Build for {0} with config {1}", Build.Platform, Build.Configuration.ToString());
+
+				if(Build.Configuration == ParseConfiguration)
+				{
+					FoundBuild = Build;
+					break;
+				}
+			}
 
 			if (FoundBuild == null)
 			{
-				throw new AutomationException("No builds for platform {0} found at {1}", Platform, Build);
+				throw new AutomationException("No builds for platform {0} found at {1} matching configuration {2}", Platform, Build, ParseConfiguration);
 			}
 
 			UnrealAppConfig Config	= new UnrealAppConfig();
